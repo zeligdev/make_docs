@@ -1,91 +1,9 @@
+# common libraries
 use strict;
 use warnings;
 
-
-
-# (0) SUBROUTINE DEFINITIONS
-# **************************
-
-# @_: list of arguments as an array
-# result - a list with unique entries
-sub uniq {
-  my $hits = {};
-  grep { ! $hits->{$_}++ } @_;
-}
-
-
-# $a, $b: two dates formated like dd/dd/dddd
-# return: -1, 0, 1 - less than, equal, greater than
-sub date_cmp {
-  # convert left hand side into a triplet of numbers
-  $a =~ /(\d?\d)\/(\d?\d)\/(\d{4})/;
-  my ($lmon, $lday, $lyear) = ($1, $2, $3);
-
-  # convert right hand side into ... """
-  $b =~ /(\d?\d)\/(\d?\d)\/(\d{4})/;
-  my ($rmon, $rday, $ryear) = ($1, $2, $3);
-
-  # compare
-  return $lyear <=> $ryear unless $lyear == $ryear;
-  return $lmon <=> $rmon unless $lmon == $rmon;
-  $lday <=> $rday;
-}
-
-
-# $text: a blob of text
-# return: a unique list of packages
-sub get_packages {
-  my $text = shift;
-  $text =~ m/(\\usepackage(?:\[.*?\])?{.*?}(?:\[.*?\])?)/gs;
-}
-
-
-# @_: a list of package preamble commands
-# return: a reduced list - containing only the earliest dated
-#         of each package
-sub reduce_packages {
-  my @packages;
-  my @package_names = uniq map { m/\\usepackage{(.*?)}/ } @_;
-
-  for (@package_names) {
-    # generate regex
-    my $regex = qr{\\usepackage{$_}\[(.*?)\]};
-
-    # sort list of dates and get earliest
-    my @dates = sort { &date_cmp } map { m/$regex/ } @_;
-
-    my $date = shift @dates;
-
-    # construct earliest dated package
-    my $pack = q/\usepackage/;
-    $pack .= "{$_}";
-    $pack .= "[$date]" if defined $date;
-
-    push @packages, $pack;
-  }
-
-  @packages;
-}
-
-
-# get body of a blob of text (from a tex file)
-sub get_body {
-  my ($text) = shift;
-  $text =~ m/\\begin{document}(.*?)\\end{document}/s;
-  if ($text =~ m/\\begin{document}(.*?)\\end{document}/s) {
-    return $1;
-  }
-  else {
-    return $text;
-  }
-}
-
-
-# get title of a blob of text (from a tex file)
-sub get_title {
-  my ($title) = shift;
-  $title =~ m/\\title\{(.*?)\}/;
-}
+# make_docs libraries
+use Doc;
 
 
 
@@ -204,6 +122,13 @@ my $conf_file = defined $assign->{conf} ? $assign->{conf} : "make_docsIII.conf";
 my $dir = defined $assign->{outdir} ? $assign->{outdir} : "texs";
 
 
+print "Destination File: $dest_file\n";
+print "Configuration File: $conf_file\n";
+print "File Directory: $dir\n\n";
+
+die();
+
+=head1
 # open destination and conf file handles
 open DOC, ">$dest_file" or die("");
 open CONF, "<$conf_file" or die("");
@@ -219,6 +144,7 @@ my @file_list = map { chomp; $_ } <CONF>;
 
 # collect data about packages, classes, and styles
 my @packages;
+
 my @commands;
 my @styles;
 my @classes;
@@ -329,7 +255,7 @@ foreach my $line (@file_list) {
 @styles = uniq @styles;
 
 # usepackages has a few extra parameters
-@packages = reduce_packages @packages;
+@packages = Doc::reduce_packages @packages;
 
 
 
@@ -390,7 +316,7 @@ print DOC "\n\n% end body\n";
 print DOC "\\end{document}";
 
 
-
+=cut
 
 # (6) PROGRAM CLOSE
 # *****************
