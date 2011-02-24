@@ -1,13 +1,26 @@
-\SweaveOpts{results=hide, prefix.string=vigpics/gamma}
-\include{zinput}
+\documentclass{article}
+
+\usepackage{bibentry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{Zelig}
+\usepackage{Sweave}
+
+\SweaveOpts{prefix.string=vigpics/gamma}
+
 %\VignetteIndexEntry{Gamma Regression for Continuous, Positive Dependent Variables}
 %\VignetteDepends{Zelig, MCMCpack}
 %\VignetteKeyWords{model,regression,gamma distribution}
 %\VignettePackage{Zelig, stats}
+
 \begin{document}
+
 \nobibliography*
+
 <<beforepkgs, echo=FALSE>>=
- before=search()
+ before <- search()
 @
 
 <<loadLibrary, echo=F,results=hide>>=
@@ -89,7 +102,8 @@ Simulate expected values ({\tt qi\$ev}) and first differences ({\tt qi\$fd}):
 <<Example.sim>>=
  s.out <- sim(z.out, x = x.low, x1 = x.high)
 @ 
-<<Example.summary>>=
+<<Example.summary, results=verbatim>>=
+message("!!!!!")
 summary(s.out)
 @ 
 \begin{center}
@@ -210,16 +224,16 @@ below.
    \item {\tt qi\$att.pr}: the simulated average predicted treatment
      effect for the treated from conditional prediction models.  
    \end{itemize}
+
 \end{itemize}
 
 
-\subsection* {How to Cite} 
+\subsection*{How to Cite the Gamma Model}
+\bibentry{ImaLauKin-logit11}
 
-<<cite, echo=FALSE>>=
-Zelig:::.describe("gamma")
-@ 
-
+\subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
+
 
 \subsection* {See also}
 The gamma model is part of the stats package by \citet{VenRip02}.
@@ -228,22 +242,23 @@ Advanced users may wish to refer to \texttt{help(glm)} and
 errors are implemented via the sandwich package by \citet{Zeileis04}.
 Sample data are from \cite{KinTomWit00}.
 
-\bibliographystyle{asa}
-\bibliography{gk,gkpubs}
+\bibliographystyle{plain}
+\bibliography{gk,gkpubs,core}
+
 <<afterpkgs, echo=FALSE>>=
- after<-search()
- torm<-setdiff(after,before)
- for (pkg in torm)
- detach(pos=match(pkg,search()))
+  after <- search()
+  torm<-setdiff(after,before)
+  for (pkg in torm)
+    detach(pos=match(pkg,search()))
 @
- \end{document}
+
+\end{document}
 
 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
 %%% End: 
-
 
 
 

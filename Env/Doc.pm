@@ -18,10 +18,10 @@ LaTeX::Doc
 
 =over 2
 
-=item new Doc FILE_HANDLE;
+=item new Doc(file => "file_name")
 
-param: FILE_HANDLE is a file handle
-return: a LaTeX::Doc object
+  param: file a character string specifying a file name
+  return: a LaTeX::Doc object
 
 =cut
 
@@ -34,6 +34,7 @@ sub new {
   # add error-checking here
   # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
 
+  $file = "$file.tex" unless $file =~ m/\.tex$/;
   # define
   my $self = {
     _file => "$file_name.tex",
@@ -65,7 +66,8 @@ sub get_packages {
 
   my $file = $self->{_file};
 
-  open FI, $file;
+  open FI, "$file";
+
 
   my $old_slash = $/;
   $/ = \0;
@@ -76,7 +78,9 @@ sub get_packages {
 
   $/ = $old_slash;
 
-  map { /\\usepackage(\[.*?\])?{(.*?)}/; "$2" } @packages;
+  my @results = map { /\\usepackage(\[.*?\])?{(.*?)}/; "$2" } @packages;
+
+  @results;
 }
 
 
@@ -94,7 +98,7 @@ sub get_body {
   my $slash = \0;
   ($/, $slash) = ($slash, $/);
 
-  open FI, $self->{file};
+  open FI, "<$self->{_file}";
 
   if (<FI> =~ m/\\begin{document}(.*?)\\end{document}/s) {
     close FI;
@@ -121,7 +125,7 @@ sub get_bibliographies {
 
   ($/, $slash) = (\0, $/);
 
-  open FI, $self->{_file};
+  open FI, "<$self->{_file}";
 
 
   my @bibs;
@@ -160,14 +164,16 @@ sub get_title {
   my $self = shift;
   open FI, "<$self->{_file}" or die("could not open Doc file");
 
-
   my $slash = $/;
   $/ = \0;
   my @titles = <FI> =~ m/\\title\{(.*?)}/g;
 
   $/ = $slash;
   close FI;
-  pop @titles;
+
+  my $result = pop @titles;
+
+  defined $result ? $result : "";
 }
 
 
@@ -271,7 +277,6 @@ sub new {
              _bibs => []
   };
 
-
   bless $obj, $self;
 }
 
@@ -289,56 +294,54 @@ sub add_parts {
 }
 
 
-sub write_book {
-  my ($self, %params) = @_;
-  my $handle;
+=item write_book(to_file => T/F)
 
-  if ($params{to_file}) {
-
-    print "TITLE=$self->{_temp_file}\n";
-    open $handle, ">$self->{_temp_file}";
-
-  
-
-
-  }
-
-  
-  for (@{$self->{_parts}}) {
-    $_->write($handle)
-
-  }
-
-  close $handle;
-
-}
-
-=item DESTROY
-
-
+  param: to_file boolean. determines whether the book is
+         printed into a temporary environment, rather than
+         standard output
+  return: none
 
 =cut
-sub DESTROY {
+sub write_book {
+  my $self = shift;
+  my $handle;
+
+  #print "TITLE=$self->{_temp_file}\n";
+  open $handle, ">$self->{_temp_file}";
+
+  print $handle "\\documentclass{book}\n\n";
+
+  @packages = $self->get_packages();
+
+  print $handle "% packages\n";
+  print $handle join "\n", map { "\\usepackage{$_}" } @packages;
+  print $handle "\n\n";
+  print $handle "\\begin{document}\n\n";
+
+  for (@{$self->{_parts}}) {
+    # print "FILE: ", $_->{_title}, "\n";
+    # print "PACKAGES: ";
+    # print join " ", $_->get_packages();
+    # print "\n";
+    $_->write($handle)
+  }
+
+  print $handle q/\end{document}/;
+
+  close $handle;
 }
 
 
-sub write {
-  my $file_str = shift;
-}
+=item setup_env()
 
-sub write_to_handle {
-  my $handle = shift;
-}
+  creates a temporary directory to build the book
 
-
+=cut
 sub setup_env {
   my $self = shift;
 
-  
-
-  #$self->{_dir} = $tmp_dir;
-  #$self->{_handle} = $handle;
-  #$self->{_file} = $tmp_file;
+  my $tmp_dir = $self->{_temp_dir};
+  my $tmp_file = $self->{_temp_file};
 
   my @packages = ();
 
@@ -362,8 +365,10 @@ TEMP
 
  
       print " $file to $newfile\n";
-      link $file, $newfile;
 
+      open FI, ">$newfile";
+      print FI $doc->get_body();
+      close FI;
     }
 
   }
@@ -376,8 +381,29 @@ sub remove_env {
 }
 
 
+=item get_packages()
+
+  return: a list of all the packages from all the articles
+          composing the book
+
+=cut
+sub get_packages {
+
+  my $self = shift;
+  my @packages = ();
+
+  for (@{$self->{_parts}}) {
+    push @packages, $_->get_packages();
+  }
+
+  return @packages;
+}
+
 
 # end
+sub get_temp_dir {
+  shift()->{_temp_dir};
+}
 
 
 package Part;
@@ -425,9 +451,6 @@ sub add_chapters {
 #
 sub write {
   my ($self, $handle) = @_;
-
-
-
   my $title = $self->{_title};
 
   if (defined $title) {
@@ -441,6 +464,24 @@ sub write {
   }
 }
 
+=item get_packages()
+
+  return: listed packages
+
+=cut
+sub get_packages {
+
+  my $self = shift;
+  my @packages = ();
+
+  for (keys %{$self->{_chapters}}) {
+
+    my $doc = new Doc(file => $_);
+    push @packages, $doc->get_packages();
+  }
+
+  @packages;
+}
 package Chapter;
 
 sub new {
@@ -457,7 +498,7 @@ sub new {
 
 
 sub print_as_include {
-  my ($self, $write) = @_;
+  my ($self, $handle) = @_;
 
   #
   my $chapter_name = $self->{_chapter_name};
@@ -468,11 +509,11 @@ sub print_as_include {
   $label = $self->{_file_name} if not defined $label;
   
   #
-  print q/\chapter/;
-  print "[$self->{_short_name}]" if defined $self->{_short_name};
-  print "{$chapter_name}\n";
-  print "\\label{chapter:$label}\n";
-  print q/\include{/, $self->{_file_name}, "}\n";
+  print $handle q/\chapter/;
+  print $handle "[$self->{_short_name}]" if defined $self->{_short_name};
+  print $handle "{$chapter_name}\n";
+  print $handle "\\label{chapter:$label}\n";
+  print $handle q/\include{/, $self->{_file_name}, "}\n";
 }
 
 sub hard_link {
@@ -507,7 +548,8 @@ our $title = qr/^:(.*)$/;
 # file: chapter name
 our $chapter = qr/(.*?):(.*)/;
 
-
+# hard links
+our $link = qr/\[(.*?)\]/;
 
 
 1;

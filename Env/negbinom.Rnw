@@ -1,6 +1,13 @@
 \documentclass{article}
 
+\usepackage{bibentry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{url}
 \usepackage{Zelig}
+\usepackage{Sweave}
+
 \SweaveOpts{results=hide, prefix.string=vigpics/negbin}
 
 
@@ -225,13 +232,10 @@ below.
    \end{itemize}
 \end{itemize}
 
-\subsection* {How to Cite} 
+\subsection*{How to Cite the Negative Binomial Model}
+\bibentry{ImaLauKin-negbinom11}
 
-How to cite this model in Zelig:
-\begin{verse}
-  Kosuke Imai, Gary King, and Olivia Lau. 2010. "negbinom" in Kosuke Imai, Gary King, and Olivia Lau, "Zelig: Everyone's Statistical Software,"http://gking.harvard.edu/zelig
-\end{verse}
-
+\subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
 
 \subsection* {See also}

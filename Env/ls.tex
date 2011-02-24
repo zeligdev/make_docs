@@ -1,6 +1,6 @@
 \documentclass{article}
 
-\SweaveOpts{results=hide, prefix.string=vigpics/ls}
+
 
 \usepackage{bibentry}
 \usepackage{graphicx}
@@ -19,13 +19,7 @@
 
 \nobibliography*
 
-<<beforepkgs, echo=FALSE>>=
- before=search()
-@
 
-<<loadLibrary, echo=F,results=hide>>=
-library(Zelig)
-@ 
 
 \section{{\tt ls}: Least Squares Regression for Continuous
 Dependent Variables}
@@ -82,35 +76,50 @@ specified in {\tt method}.  See the {\tt sandwich} library and
 \item Basic Example with First Differences
 
 Attach sample data:
-<<Examples.data>>=
- data(macro)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> data(macro)
+\end{Sinput}
+\end{Schunk}
 Estimate model:
-<<Examples.zelig>>=
- z.out1 <- zelig(unem ~ gdp + capmob + trade, model = "ls", data = macro)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> z.out1 <- zelig(unem ~ gdp + capmob + trade, model = "ls", data = macro)
+\end{Sinput}
+\end{Schunk}
 Summarize regression coefficients:
-<<Examples.summary>>=
- summary(z.out1)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> summary(z.out1)
+\end{Sinput}
+\end{Schunk}
 Set explanatory variables to their default (mean/mode) values, with
 high (80th percentile) and low (20th percentile) values for the trade variable:
-<<Examples.setx>>=
- x.high <- setx(z.out1, trade = quantile(macro$trade, 0.8))
- x.low <- setx(z.out1, trade = quantile(macro$trade, 0.2))
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> x.high <- setx(z.out1, trade = quantile(macro$trade, 0.8))
+> x.low <- setx(z.out1, trade = quantile(macro$trade, 0.2))
+\end{Sinput}
+\end{Schunk}
 Generate first differences for the effect of high versus low trade on
 GDP:
-<<Examples.sim>>=
- s.out1 <- sim(z.out1, x = x.high, x1 = x.low)
-@ 
-<<Examples.summary.sim>>= 
-summary(s.out1)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> s.out1 <- sim(z.out1, x = x.high, x1 = x.low)
+\end{Sinput}
+\end{Schunk}
+\begin{Schunk}
+\begin{Sinput}
+> summary(s.out1)
+\end{Sinput}
+\end{Schunk}
 \begin{center}
-<<label=ExamplesPlot,fig=true,echo=true,width=5.5,height=4>>=  
- plot(s.out1)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> plot(s.out1)
+\end{Sinput}
+\end{Schunk}
+\includegraphics{vigpics/ls-ExamplesPlot}
 \end{center}
 
 \item Using Dummy Variables
@@ -119,24 +128,33 @@ Estimate a model with fixed effects for each country (see
 \Sref{factors} for help with dummy variables).  Note that you do not
 need to create dummy variables, as the program will automatically
 parse the unique values in the selected variable into discrete levels.  
-<<Dummy.zelig>>=
- z.out2 <- zelig(unem ~ gdp + trade + capmob + as.factor(country), 
-                  model = "ls", data = macro)
-@   
+\begin{Schunk}
+\begin{Sinput}
+> z.out2 <- zelig(unem ~ gdp + trade + capmob + as.factor(country), 
++     model = "ls", data = macro)
+\end{Sinput}
+\end{Schunk}
 Set values for the explanatory variables, using the default mean/mode
 values, with country set to the United States and Japan, respectively:
-<<Dummy.setx>>=
- x.US <- setx(z.out2, country = "United States")
- x.Japan <- setx(z.out2, country = "Japan")
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> x.US <- setx(z.out2, country = "United States")
+> x.Japan <- setx(z.out2, country = "Japan")
+\end{Sinput}
+\end{Schunk}
 Simulate quantities of interest:
-<<Dummy.sim>>=
- s.out2 <- sim(z.out2, x = x.US, x1 = x.Japan)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> s.out2 <- sim(z.out2, x = x.US, x1 = x.Japan)
+\end{Sinput}
+\end{Schunk}
 \begin{center}
-<<label=DummyPlot,fig=true,echo=true, width=5.5, height=4>>=   
- plot(s.out2)
-@ 
+\begin{Schunk}
+\begin{Sinput}
+> plot(s.out2)
+\end{Sinput}
+\end{Schunk}
+\includegraphics{vigpics/ls-DummyPlot}
 \end{center}
 
 %\item Multiple responses (least squares regression will be fitted
@@ -290,12 +308,6 @@ Venables and Brian D. Ripley \citep{VenRip02}.In addition, advanced users may wi
 \bibliographystyle{asa}
 \bibliography{gk,gkpubs,core}
 
-<<afterpkgs, echo=FALSE>>=
- after<-search()
- torm<-setdiff(after,before)
- for (pkg in torm)
- detach(pos=match(pkg,search()))
-@
 \end{document}
 
 %%% Local Variables: 

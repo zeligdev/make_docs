@@ -10,37 +10,32 @@
 
 
 
-%\VignetteIndexEntry{Gamma Regression for Continuous, Positive Dependent Variables}
-%\VignetteDepends{Zelig, MCMCpack}
-%\VignetteKeyWords{model,regression,gamma distribution}
-%\VignettePackage{Zelig, stats}
 
 \begin{document}
-
 \nobibliography*
 
 
 
-\section{{\tt gamma}: Gamma Regression for Continuous, Positive Dependent Variables}\label{gamma}
+\section{{\tt negbinom}: Negative Binomial Regression for Event
+Count Dependent Variables}\label{negbinom}
 
-Use the gamma regression model if you have a positive-valued dependent
-variable such as the number of years a parliamentary cabinet endures,
-or the seconds you can stay airborne while jumping.  The gamma
-distribution assumes that all waiting times are complete by the end
-of the study (censoring is not allowed).
+Use the negative binomial regression if you have a count of events for
+each observation of your dependent variable.  The negative binomial
+model is frequently used to estimate over-dispersed event count
+models.
 
 \subsubsection{Syntax}
 
 \begin{verbatim}
-> z.out <- zelig(Y ~ X1 + X2, model = "gamma", data = mydata)
+> z.out <- zelig(Y ~ X1 + X2, model = "negbinom", data = mydata)
 > x.out <- setx(z.out)
-> s.out <- sim(z.out, x = x.out, x1 = NULL)
+> s.out <- sim(z.out, x = x.out)
 \end{verbatim}
 
 \subsubsection{Additional Inputs} 
 
 In addition to the standard inputs, {\tt zelig()} takes the following
-additional options for gamma regression:  
+additional options for negative binomial regression:  
 \begin{itemize}
 \item {\tt robust}: defaults to {\tt FALSE}.  If {\tt TRUE} is
 selected, {\tt zelig()} computes robust standard errors via the {\tt
@@ -73,109 +68,39 @@ specified in {\tt method}.   See the {\tt sandwich} library and
 
 \subsubsection{Example}
 
-Attach the sample data: 
+Load sample data:  
 \begin{Schunk}
 \begin{Sinput}
-> data(coalition)
+> data(sanction)
 \end{Sinput}
 \end{Schunk}
-Estimate the model: 
+Estimate the model:  
 \begin{Schunk}
 \begin{Sinput}
-> z.out <- zelig(duration ~ fract + numst2, model = "gamma", data = coalition)
+> z.out <- zelig(num ~ target + coop, model = "negbinom", data = sanction)
 \end{Sinput}
-\begin{Soutput}
-How to cite this model in Zelig:
-  Kosuke Imai, Gary King, and Olivia Lau. 2011.
-  "gamma: Gamma Regression for Continuous, Positive Dependent Variables"
-  in Kosuke Imai, Gary King, and Olivia Lau, "Zelig: Everyone's Statistical Software,"
-  http://gking.harvard.edu/zelig
-\end{Soutput}
 \end{Schunk}
-View the regression output:  
 \begin{Schunk}
 \begin{Sinput}
 > summary(z.out)
 \end{Sinput}
-\begin{Soutput}
-Call:
-glm(formula = stored.formula, family = stored.family, data = stored.data, 
-    model = model)
-
-Deviance Residuals: 
-    Min       1Q   Median       3Q      Max  
--2.2510  -0.9112  -0.2278   0.4132   1.5360  
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -1.296e-02  1.329e-02  -0.975  0.33016    
-fract        1.149e-04  1.723e-05   6.668 1.19e-10 ***
-numst2      -1.739e-02  5.881e-03  -2.957  0.00335 ** 
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
-
-(Dispersion parameter for Gamma family taken to be 0.6291004)
-
-    Null deviance: 300.74  on 313  degrees of freedom
-Residual deviance: 272.19  on 311  degrees of freedom
-AIC: 2428.1
-
-Number of Fisher Scoring iterations: 6
-\end{Soutput}
 \end{Schunk}
-Set the baseline values (with the ruling coalition in the minority)
-and the alternative values (with the ruling coalition in the majority)
-for X:
+Set values for the explanatory variables to their default mean values:  
 \begin{Schunk}
 \begin{Sinput}
-> x.low <- setx(z.out, numst2 = 0)
-> x.high <- setx(z.out, numst2 = 1)
+> x.out <- setx(z.out)
 \end{Sinput}
 \end{Schunk}
-Simulate expected values ({\tt qi\$ev}) and first differences ({\tt qi\$fd}):
+Simulate fitted values:  
 \begin{Schunk}
 \begin{Sinput}
-> s.out <- sim(z.out, x = x.low, x1 = x.high)
+> s.out <- sim(z.out, x = x.out)
 \end{Sinput}
 \end{Schunk}
 \begin{Schunk}
 \begin{Sinput}
-> message("!!!!!")
 > summary(s.out)
 \end{Sinput}
-\begin{Soutput}
-Model:  gamma 
-Number of simulations:  1000 
-
-Values of X
-      (Intercept)    fract numst2
-coef:           1 718.8121      0
-
-Values of X1
-      (Intercept)    fract numst2
-coef:           1 718.8121      1
-
-
-Expected Values: E(Y|X) 
-   mean    sd    50%  2.5%  97.5%
- 14.478 1.055 14.392 12.75 16.766
-
-Expected Values (for X1): E(Y|X1) 
-   mean    sd    50%   2.5% 97.5%
- 19.229 1.115 19.119 17.241 21.67
-
-Predicted Values: Y|X 
-   mean     sd   50%  2.5%  97.5%
- 15.189 13.769 11.23 0.915 53.398
-
-Predicted Values: Y|X1 
-  mean     sd    50%  2.5%  97.5%
- 18.97 17.394 14.101 1.088 69.186
-
-First Differences: E(Y|X1) - E(Y|X) 
-  mean    sd   50%  2.5% 97.5%
- 4.751 1.511 4.779 1.719 7.467
-\end{Soutput}
 \end{Schunk}
 \begin{center}
 \begin{Schunk}
@@ -183,39 +108,52 @@ First Differences: E(Y|X1) - E(Y|X)
 > plot(s.out)
 \end{Sinput}
 \end{Schunk}
-\includegraphics{vigpics/gamma-ExamplePlot}
+\includegraphics{vigpics/negbin-Example1Plot}
 \end{center}
-
 \subsubsection{Model}
+Let $Y_i$ be the number of independent events that occur during a
+fixed time period. This variable can take any non-negative integer value.
 
 \begin{itemize}
-\item The Gamma distribution with scale parameter $\alpha$ has a
-\emph{stochastic component}:
-\begin{eqnarray*}
-Y &\sim& \textrm{Gamma}(y_i \mid \lambda_i, \alpha) \\
-f(y)  &=& \frac{1}{\alpha^{\lambda_i} \, \Gamma \lambda_i} \, y_i^{\lambda_i
-  - 1} \exp -\left\{ \frac{y_i}{\alpha} \right\}
-\end{eqnarray*}
-for $\alpha, \lambda_i, y_i > 0$.  \\
+\item The negative binomial distribution is derived by letting the
+  mean of the Poisson distribution vary according to a fixed
+  parameter $\zeta$ given by the Gamma distribution. The
+  \emph{stochastic component} is given by
+   \begin{eqnarray*}
+     Y_i \mid \zeta_i & \sim & \textrm{Poisson}(\zeta_i \mu_i),\\
+     \zeta_i & \sim & \frac{1}{\theta}\textrm{Gamma}(\theta).
+   \end{eqnarray*}
+   The marginal distribution of $Y_i$ is then the negative binomial
+   with mean $\mu_i$ and variance $\mu_i + \mu_i^2/\theta$:
+   \begin{eqnarray*}
+   Y_i & \sim & \textrm{NegBinom}(\mu_i, \theta), \\
+       & = & \frac{\Gamma (\theta + y_i)}{y! \, \Gamma(\theta)} 
+             \frac{\mu_i^{y_i} \, \theta^{\theta}}{(\mu_i + \theta)^{\theta + y_i}},
+   \end{eqnarray*}
+   where $\theta$ is the systematic parameter of the Gamma
+   distribution modeling $\zeta_i$.  
 
-\item The \emph{systematic component} is given by
-\begin{equation*}
-  \lambda_i = \frac{1}{x_i \beta}
-\end{equation*}
-\end{itemize}
+ \item The \emph{systematic component} is given by
+   \begin{equation*}
+     \mu_i = \exp(x_i \beta)
+   \end{equation*}
+   where $x_i$ is the vector of $k$ explanatory variables and $\beta$ is
+   the vector of coefficients.
+ \end{itemize}
 
 \subsubsection{Quantities of Interest}
-
 \begin{itemize}
 \item The expected values ({\tt qi\$ev}) are simulations of the mean
-  of the stochastic component given draws of $\alpha$ and
-  $\beta$ from their posteriors:  $$E(Y) = \alpha \lambda_i.$$  
-\item The predicted values ({\tt qi\$pr}) are draws from the gamma
-  distribution for each given set of parameters $(\alpha, \lambda_i)$.
-\item If {\tt x1} is specified, {\tt sim()} also returns the
-  differences in the expected values ({\tt qi\$fd}), $$E(Y \mid x_1) -
-  E(Y \mid x)$$.
+  of the stochastic component.  Thus, $$E(Y) = \mu_i = \exp(x_i
+  \beta),$$ given simulations of $\beta$.  
+  
+\item The predicted value ({\tt qi\$pr}) drawn from the distribution
+  defined by the set of parameters $(\mu_i, \theta)$.
 
+\item The first difference ({\tt qi\$fd}) is
+\begin{equation*}
+\textrm{FD} \; = \; E(Y | x_1) - E(Y \mid x)
+\end{equation*}
 \item In conditional prediction models, the average expected treatment
   effect ({\tt att.ev}) for the treatment group is 
     \begin{equation*} \frac{1}{\sum_{i=1}^n t_i}\sum_{i:t_i=1}^n \left\{ Y_i(t_i=1) -
@@ -233,21 +171,20 @@ for $\alpha, \lambda_i, y_i > 0$.  \\
     \begin{equation*} \frac{1}{\sum_{i=1}^n t_i}\sum_{i:t_i=1}^n \left\{ Y_i(t_i=1) -
       \widehat{Y_i(t_i=0)} \right\},
     \end{equation*} 
-    where $t_i$ is a binary explanatory variable defining the treatment
-    ($t_i=1$) and control ($t_i=0$) groups.  Variation in the
-    simulations are due to uncertainty in simulating
+    where $t_i$ is a binary explanatory variable defining the
+    treatment ($t_i=1$) and control ($t_i=0$) groups.  Variation in
+    the simulations are due to uncertainty in simulating
     $\widehat{Y_i(t_i=0)}$, the counterfactual predicted value of
     $Y_i$ for observations in the treatment group, under the
     assumption that everything stays the same except that the
-    treatment indicator is switched to $t_i=0$.  
-
+    treatment indicator is switched to $t_i=0$.
 \end{itemize}
 
 \subsubsection{Output Values}
 
 The output of each Zelig command contains useful information which you
 may view.  For example, if you run \texttt{z.out <- zelig(y \~\,
-  x, model = "gamma", data)}, then you may examine the available
+  x, model = "negbinom", data)}, then you may examine the available
 information in \texttt{z.out} by using \texttt{names(z.out)},
 see the {\tt coefficients} by using {\tt z.out\$coefficients}, and
 a default summary of information through \texttt{summary(z.out)}.
@@ -255,15 +192,18 @@ Other elements available through the {\tt \$} operator are listed
 below.
 
 \begin{itemize}
-\item From the {\tt zelig()} output object {\tt z.out}, you may
-  extract:
+\item From the {\tt zelig()} output object {\tt z.out}, you may extract:
    \begin{itemize}
    \item {\tt coefficients}: parameter estimates for the explanatory
      variables.
+   \item {\tt theta}: the maximum likelihood estimate for the
+     stochastic parameter $\theta$.  
+   \item {\tt SE.theta}: the standard error for {\tt theta}.  
    \item {\tt residuals}: the working residuals in the final iteration
      of the IWLS fit.
-   \item {\tt fitted.values}: the vector of fitted values.
-   \item {\tt linear.predictors}: the vector of $x_{i}\beta$.
+   \item {\tt fitted.values}: a vector of the fitted values for the systemic
+     component $\lambda$.  
+   \item {\tt linear.predictors}: a vector of $x_{i} \beta$.  
    \item {\tt aic}: Akaike's Information Criterion (minus twice the
      maximized log-likelihood plus twice the number of coefficients).
    \item {\tt df.residual}: the residual degrees of freedom.
@@ -287,49 +227,37 @@ below.
   Available quantities are:
 
    \begin{itemize}
-   \item {\tt qi\$ev}: the simulated expected values for the specified
+   \item {\tt qi\$ev}: the simulated expected values given the specified
      values of {\tt x}.
-   \item {\tt qi\$pr}: the simulated predicted values drawn from a
-     distribution defined by $(\alpha, \lambda_i)$.
-   \item {\tt qi\$fd}: the simulated first difference in the expected
-     values for the specified values in {\tt x} and {\tt x1}.
+   \item {\tt qi\$pr}: the simulated predicted values drawn from the
+     distribution defined by $(\mu_i, \theta)$.  
+   \item {\tt qi\$fd}: the simulated first differences in the
+     simulated expected values given the specified values of {\tt x}
+     and {\tt x1}.
    \item {\tt qi\$att.ev}: the simulated average expected treatment
      effect for the treated from conditional prediction models.  
    \item {\tt qi\$att.pr}: the simulated average predicted treatment
      effect for the treated from conditional prediction models.  
    \end{itemize}
-
 \end{itemize}
 
-
-\subsection*{How to Cite the Gamma Model}
-\bibentry{ImaLauKin-logit11}
+\subsection*{How to Cite the Negative Binomial Model}
+\bibentry{ImaLauKin-negbinom11}
 
 \subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
 
-
 \subsection* {See also}
-The gamma model is part of the stats package by \citet{VenRip02}.
-Advanced users may wish to refer to \texttt{help(glm)} and
-\texttt{help(family)}, as well as \cite{McCNel89}. Robust standard
-errors are implemented via the sandwich package by \citet{Zeileis04}.
-Sample data are from \cite{KinTomWit00}.
+The negative binomial model is part of the MASS package by William N. Venable and Brian D. Ripley \citep{VenRip02}. Advanced users may wish to refer to \texttt{help(glm.nb)} as well as \cite{McCNel89}. Robust standard errors are implemented via sandwich package by Achim Zeileis \citep{Zeileis04}.Sample data are from \cite{Martin92}.
 
-\bibliographystyle{plain}
-\bibliography{gk,gkpubs,core}
-
-
-\end{document}
-
+\bibliographystyle{asa}
+\bibliography{gk,gkpubs}
+ \end{document}
 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
 %%% End: 
-
-
-
 
 
 

@@ -1,11 +1,20 @@
 \documentclass{article}
 
+\usepackage{bibentry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{url}
 \usepackage{Zelig}
+\usepackage{Sweave}
+
 \SweaveOpts{results=hide, prefix.string=vigpics/normal}
 
 
 \begin{document}
+
 \nobibliography*
+
 <<beforepkgs, echo=FALSE>>=
  before=search()
 @
@@ -257,17 +266,19 @@ below.
    \end{itemize}
 \end{itemize}
 
-\subsection* {How to Cite} 
 
-How to cite this model in Zelig:
-\begin{verse}
-  Kosuke Imai, Gary King, and Olivia Lau. 2008. "normal: Normal Regression for Continuous Dependent Variables" in Kosuke Imai, Gary King, and Olivia Lau, "Zelig: Everyone's Statistical Software,"http://gking.harvard.edu/zelig
-\end{verse}
 
+
+
+
+\subsection*{How to Cite the Gamma Model}
+\bibentry{ImaLauKin-logit11}
+
+\subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
 
-\subsection* {See also}
 
+\subsection* {See also}
 The normal model is part of the stats package by \citet{VenRip02}.
 Advanced users may wish to refer to \texttt{help(glm)} and
 \texttt{help(family)}, as well as \cite{McCNel89}. Robust standard

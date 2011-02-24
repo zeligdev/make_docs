@@ -1,7 +1,14 @@
 \documentclass{article}
 
-\usepackage{Zelig}
 \SweaveOpts{results=hide, prefix.string=vigpics/poisson}
+
+\usepackage{bibentry}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{Zelig}
+\usepackage{Sweave}
 
 
 \begin{document}
@@ -211,6 +218,12 @@ below.
      effect for the treated from conditional prediction models.  
    \end{itemize}
 \end{itemize}
+
+\subsection*{How to Cite the Logit Model}
+\bibentry{ImaLauKin-negbinom11}
+
+\subsection*{How to Cite the Zelig Software Package}
+\CiteZelig
 
 \subsection* {How to Cite} 
 

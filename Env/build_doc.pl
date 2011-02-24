@@ -2,6 +2,7 @@ use Doc;
 
 use warnings;
 use strict;
+use File::Spec;
 
 
 print << "INTRO";
@@ -52,6 +53,13 @@ Summary
 
 INFO
 
+print "Are these correct? Y/N";
+my $choice = <>;
+
+exit 0 if $choice eq "N" || $choice eq "n";
+
+
+
 # FILE HANDLES
 # ************
 
@@ -61,6 +69,9 @@ open CONF, "<$conf_file" or die("could not open `$conf_file' for reading");
 # BEGIN MAKING BOOK
 # *****************
 
+
+my $d = new Doc(file => "gamma");
+my $tmp_dir = "";
 my $book = new Book(
   title => "Zelig",
   author => "Matt Owen, Kosuke Imai, Olivia Lau, and Gary King"
@@ -70,6 +81,9 @@ my $part = new Part("No one Ever Really Dies");
 my $chapter = new Chapter();
 my $doc = undef;
 
+
+$tmp_dir = $book->get_temp_dir();
+
 for my $line (<CONF>) {
   chomp $line;
 
@@ -78,6 +92,11 @@ for my $line (<CONF>) {
   if ($line =~ m/$DocRegexes::part/) {
     $book->add_parts($part);
     $part = new Part($1);
+  }
+
+  elsif ($line =~ m/$DocRegexes::link/) {
+    print " * Linking:  '$1' to '$tmp_dir/$1'\n";
+    symlink File::Spec->rel2abs($1), "$tmp_dir/$1";
   }
 
   # chapter with title explicitly set

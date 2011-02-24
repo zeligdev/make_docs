@@ -10,29 +10,23 @@
 
 
 
-%\VignetteIndexEntry{Gamma Regression for Continuous, Positive Dependent Variables}
-%\VignetteDepends{Zelig, MCMCpack}
-%\VignetteKeyWords{model,regression,gamma distribution}
-%\VignettePackage{Zelig, stats}
-
 \begin{document}
 
 \nobibliography*
 
 
 
-\section{{\tt gamma}: Gamma Regression for Continuous, Positive Dependent Variables}\label{gamma}
+\section{{\tt logit}: Logistic Regression for Dichotomous Dependent
+Variables}\label{logit}
 
-Use the gamma regression model if you have a positive-valued dependent
-variable such as the number of years a parliamentary cabinet endures,
-or the seconds you can stay airborne while jumping.  The gamma
-distribution assumes that all waiting times are complete by the end
-of the study (censoring is not allowed).
+Logistic regression specifies a dichotomous dependent variable as a
+function of a set of explanatory variables.  For a Bayesian
+implementation, see \Sref{logit.bayes}.  
 
 \subsubsection{Syntax}
 
 \begin{verbatim}
-> z.out <- zelig(Y ~ X1 + X2, model = "gamma", data = mydata)
+> z.out <- zelig(Y ~ X1 + X2, model = "logit", data = mydata)
 > x.out <- setx(z.out)
 > s.out <- sim(z.out, x = x.out, x1 = NULL)
 \end{verbatim}
@@ -40,7 +34,7 @@ of the study (censoring is not allowed).
 \subsubsection{Additional Inputs} 
 
 In addition to the standard inputs, {\tt zelig()} takes the following
-additional options for gamma regression:  
+additional options for logistic regression:  
 \begin{itemize}
 \item {\tt robust}: defaults to {\tt FALSE}.  If {\tt TRUE} is
 selected, {\tt zelig()} computes robust standard errors via the {\tt
@@ -63,7 +57,7 @@ weights given in \cite{LumHea99}.
 chronologically ordered as in the original data).  Optionally, you may
 specify a vector of weights (either as {\tt order.by = z}, where {\tt
 z} exists outside the data frame; or as {\tt order.by = \~{}z}, where
-{\tt z} is a variable in the data frame).  The observations are
+{\tt z} is a variable in the data frame)  The observations are
 chronologically ordered by the size of {\tt z}.
 \item {\tt \dots}:  additional options passed to the functions 
 specified in {\tt method}.   See the {\tt sandwich} library and
@@ -71,150 +65,142 @@ specified in {\tt method}.   See the {\tt sandwich} library and
 \end{itemize}
 \end{itemize}
 
-\subsubsection{Example}
-
-Attach the sample data: 
+\subsubsection{Examples}
+\begin{enumerate}
+\item {Basic Example}
+ 
+Attaching the sample turnout dataset:
 \begin{Schunk}
 \begin{Sinput}
-> data(coalition)
+> data(turnout)
 \end{Sinput}
 \end{Schunk}
-Estimate the model: 
+Estimating parameter values for the logistic regression:
 \begin{Schunk}
 \begin{Sinput}
-> z.out <- zelig(duration ~ fract + numst2, model = "gamma", data = coalition)
-\end{Sinput}
-\begin{Soutput}
-How to cite this model in Zelig:
-  Kosuke Imai, Gary King, and Olivia Lau. 2011.
-  "gamma: Gamma Regression for Continuous, Positive Dependent Variables"
-  in Kosuke Imai, Gary King, and Olivia Lau, "Zelig: Everyone's Statistical Software,"
-  http://gking.harvard.edu/zelig
-\end{Soutput}
-\end{Schunk}
-View the regression output:  
-\begin{Schunk}
-\begin{Sinput}
-> summary(z.out)
-\end{Sinput}
-\begin{Soutput}
-Call:
-glm(formula = stored.formula, family = stored.family, data = stored.data, 
-    model = model)
-
-Deviance Residuals: 
-    Min       1Q   Median       3Q      Max  
--2.2510  -0.9112  -0.2278   0.4132   1.5360  
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -1.296e-02  1.329e-02  -0.975  0.33016    
-fract        1.149e-04  1.723e-05   6.668 1.19e-10 ***
-numst2      -1.739e-02  5.881e-03  -2.957  0.00335 ** 
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
-
-(Dispersion parameter for Gamma family taken to be 0.6291004)
-
-    Null deviance: 300.74  on 313  degrees of freedom
-Residual deviance: 272.19  on 311  degrees of freedom
-AIC: 2428.1
-
-Number of Fisher Scoring iterations: 6
-\end{Soutput}
-\end{Schunk}
-Set the baseline values (with the ruling coalition in the minority)
-and the alternative values (with the ruling coalition in the majority)
-for X:
-\begin{Schunk}
-\begin{Sinput}
-> x.low <- setx(z.out, numst2 = 0)
-> x.high <- setx(z.out, numst2 = 1)
+> z.out1 <- zelig(vote ~ age + race, model = "logit", data = turnout)
 \end{Sinput}
 \end{Schunk}
-Simulate expected values ({\tt qi\$ev}) and first differences ({\tt qi\$fd}):
+Setting values for the explanatory variables:
 \begin{Schunk}
 \begin{Sinput}
-> s.out <- sim(z.out, x = x.low, x1 = x.high)
+> x.out1 <- setx(z.out1, age = 36, race = "white")
+\end{Sinput}
+\end{Schunk}
+Simulating quantities of interest from the posterior distribution.
+\begin{Schunk}
+\begin{Sinput}
+> s.out1 <- sim(z.out1, x = x.out1)
 \end{Sinput}
 \end{Schunk}
 \begin{Schunk}
 \begin{Sinput}
-> message("!!!!!")
-> summary(s.out)
+> summary(s.out1)
 \end{Sinput}
-\begin{Soutput}
-Model:  gamma 
-Number of simulations:  1000 
-
-Values of X
-      (Intercept)    fract numst2
-coef:           1 718.8121      0
-
-Values of X1
-      (Intercept)    fract numst2
-coef:           1 718.8121      1
-
-
-Expected Values: E(Y|X) 
-   mean    sd    50%  2.5%  97.5%
- 14.478 1.055 14.392 12.75 16.766
-
-Expected Values (for X1): E(Y|X1) 
-   mean    sd    50%   2.5% 97.5%
- 19.229 1.115 19.119 17.241 21.67
-
-Predicted Values: Y|X 
-   mean     sd   50%  2.5%  97.5%
- 15.189 13.769 11.23 0.915 53.398
-
-Predicted Values: Y|X1 
-  mean     sd    50%  2.5%  97.5%
- 18.97 17.394 14.101 1.088 69.186
-
-First Differences: E(Y|X1) - E(Y|X) 
-  mean    sd   50%  2.5% 97.5%
- 4.751 1.511 4.779 1.719 7.467
-\end{Soutput}
 \end{Schunk}
 \begin{center}
 \begin{Schunk}
 \begin{Sinput}
-> plot(s.out)
+> plot(s.out1)
 \end{Sinput}
 \end{Schunk}
-\includegraphics{vigpics/gamma-ExamplePlot}
+\includegraphics{vigpics/logit-ExamplePlot}
 \end{center}
 
+\item {Simulating First Differences}
+
+Estimating the risk difference (and risk ratio) between low education
+(25th percentile) and high education (75th percentile) while all the
+other variables held at their default values.
+\begin{Schunk}
+\begin{Sinput}
+> z.out2 <- zelig(vote ~ race + educate, model = "logit", data = turnout)
+> x.high <- setx(z.out2, educate = quantile(turnout$educate, prob = 0.75))
+> x.low <- setx(z.out2, educate = quantile(turnout$educate, prob = 0.25))
+\end{Sinput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+> s.out2 <- sim(z.out2, x = x.high, x1 = x.low)
+\end{Sinput}
+\end{Schunk}
+\begin{Schunk}
+\begin{Sinput}
+> summary(s.out2)
+\end{Sinput}
+\end{Schunk}
+\begin{center}
+\begin{Schunk}
+\begin{Sinput}
+> plot(s.out2)
+\end{Sinput}
+\end{Schunk}
+\includegraphics{vigpics/logit-FirstDifferencesPlot}
+\end{center} 
+
+
+\item {Presenting Results: An ROC Plot}  \label{ROC}
+  
+  One can use an ROC plot to evaluate the fit of alternative model
+  specifications.  (Use {\tt demo(roc)} to view this example, or see
+  King and Zeng (2002)\nocite{KinZen02}.)  
+\begin{Schunk}
+\begin{Sinput}
+> z.out1 <- zelig(vote ~ race + educate + age, model = "logit", 
++     data = turnout)
+> z.out2 <- zelig(vote ~ race + educate, model = "logit", data = turnout)
+\end{Sinput}
+\end{Schunk}
+\begin{center}
+\begin{Schunk}
+\begin{Sinput}
+> rocplot(z.out1$y, z.out2$y, fitted(z.out1), fitted(z.out2))
+\end{Sinput}
+\end{Schunk}
+\includegraphics{vigpics/logit-ROCPlot}
+\end{center}
+\end{enumerate}
+
 \subsubsection{Model}
-
+Let $Y_i$ be the binary dependent variable for observation $i$ which
+takes the value of either 0 or 1.
 \begin{itemize}
-\item The Gamma distribution with scale parameter $\alpha$ has a
-\emph{stochastic component}:
-\begin{eqnarray*}
-Y &\sim& \textrm{Gamma}(y_i \mid \lambda_i, \alpha) \\
-f(y)  &=& \frac{1}{\alpha^{\lambda_i} \, \Gamma \lambda_i} \, y_i^{\lambda_i
-  - 1} \exp -\left\{ \frac{y_i}{\alpha} \right\}
-\end{eqnarray*}
-for $\alpha, \lambda_i, y_i > 0$.  \\
 
-\item The \emph{systematic component} is given by
+\item The \emph{stochastic component} is given by  
+\begin{eqnarray*}
+Y_i &\sim& \textrm{Bernoulli}(y_i \mid \pi_i) \\
+    &=& \pi_i^{y_i} (1-\pi_i)^{1-y_i}
+\end{eqnarray*}
+where $\pi_i=\Pr(Y_i=1)$.
+
+\item The \emph{systematic component} is given by: 
 \begin{equation*}
-  \lambda_i = \frac{1}{x_i \beta}
+\pi_i \; = \; \frac{1}{1 + \exp(-x_i \beta)}.
 \end{equation*}
+where $x_i$ is the vector of $k$ explanatory variables for observation $i$
+and $\beta$ is the vector of coefficients.
 \end{itemize}
 
 \subsubsection{Quantities of Interest}
-
 \begin{itemize}
-\item The expected values ({\tt qi\$ev}) are simulations of the mean
-  of the stochastic component given draws of $\alpha$ and
-  $\beta$ from their posteriors:  $$E(Y) = \alpha \lambda_i.$$  
-\item The predicted values ({\tt qi\$pr}) are draws from the gamma
-  distribution for each given set of parameters $(\alpha, \lambda_i)$.
-\item If {\tt x1} is specified, {\tt sim()} also returns the
-  differences in the expected values ({\tt qi\$fd}), $$E(Y \mid x_1) -
-  E(Y \mid x)$$.
+\item The expected values ({\tt qi\$ev}) for the logit model are
+  simulations of the predicted probability of a success: $$E(Y) =
+  \pi_i= \frac{1}{1 + \exp(-x_i \beta)},$$ given draws of $\beta$ from
+  its sampling distribution.
+
+\item The predicted values ({\tt qi\$pr}) are draws from the Binomial
+  distribution with mean equal to the simulated expected value $\pi_i$.  
+
+\item The first difference ({\tt qi\$fd}) for the logit model is defined as
+\begin{equation*}
+\textrm{FD} = \Pr(Y = 1 \mid x_1) - \Pr(Y = 1 \mid x).
+\end{equation*}
+
+\item The risk ratio ({\tt qi\$rr}) is defined as
+\begin{equation*}
+\textrm{RR} = \Pr(Y = 1 \mid x_1) \ / \ \Pr(Y = 1 \mid x).
+\end{equation*}
 
 \item In conditional prediction models, the average expected treatment
   effect ({\tt att.ev}) for the treatment group is 
@@ -231,23 +217,22 @@ for $\alpha, \lambda_i, y_i > 0$.  \\
 \item In conditional prediction models, the average predicted treatment
   effect ({\tt att.pr}) for the treatment group is 
     \begin{equation*} \frac{1}{\sum_{i=1}^n t_i}\sum_{i:t_i=1}^n \left\{ Y_i(t_i=1) -
-      \widehat{Y_i(t_i=0)} \right\},
+      \widehat{Y_i(t_i=0)}\right\},
     \end{equation*} 
-    where $t_i$ is a binary explanatory variable defining the treatment
-    ($t_i=1$) and control ($t_i=0$) groups.  Variation in the
-    simulations are due to uncertainty in simulating
+    where $t_i$ is a binary explanatory variable defining the
+    treatment ($t_i=1$) and control ($t_i=0$) groups.  Variation in
+    the simulations are due to uncertainty in simulating
     $\widehat{Y_i(t_i=0)}$, the counterfactual predicted value of
     $Y_i$ for observations in the treatment group, under the
     assumption that everything stays the same except that the
-    treatment indicator is switched to $t_i=0$.  
-
+    treatment indicator is switched to $t_i=0$.
 \end{itemize}
 
 \subsubsection{Output Values}
 
 The output of each Zelig command contains useful information which you
-may view.  For example, if you run \texttt{z.out <- zelig(y \~\,
-  x, model = "gamma", data)}, then you may examine the available
+may view.  For example, if you run \texttt{z.out <- zelig(y \~\, x,
+  model = "logit", data)}, then you may examine the available
 information in \texttt{z.out} by using \texttt{names(z.out)},
 see the {\tt coefficients} by using {\tt z.out\$coefficients}, and
 a default summary of information through \texttt{summary(z.out)}.
@@ -262,14 +247,15 @@ below.
      variables.
    \item {\tt residuals}: the working residuals in the final iteration
      of the IWLS fit.
-   \item {\tt fitted.values}: the vector of fitted values.
-   \item {\tt linear.predictors}: the vector of $x_{i}\beta$.
+   \item {\tt fitted.values}: the vector of fitted values for the
+     systemic component, $\pi_i$.
+   \item {\tt linear.predictors}: the vector of $x_{i}\beta$
    \item {\tt aic}: Akaike's Information Criterion (minus twice the
      maximized log-likelihood plus twice the number of coefficients).
    \item {\tt df.residual}: the residual degrees of freedom.
    \item {\tt df.null}: the residual degrees of freedom for the null
      model.
-   \item {\tt zelig.data}: the input data frame if {\tt save.data = TRUE}.  
+   \item {\tt data}: the name of the input data frame.  
    \end{itemize}
 
 \item From {\tt summary(z.out)}, you may extract: 
@@ -287,30 +273,34 @@ below.
   Available quantities are:
 
    \begin{itemize}
-   \item {\tt qi\$ev}: the simulated expected values for the specified
-     values of {\tt x}.
-   \item {\tt qi\$pr}: the simulated predicted values drawn from a
-     distribution defined by $(\alpha, \lambda_i)$.
+   \item {\tt qi\$ev}: the simulated expected probabilities for the
+     specified values of {\tt x}.
+   \item {\tt qi\$pr}: the simulated predicted values for the
+     specified values of {\tt x}.
    \item {\tt qi\$fd}: the simulated first difference in the expected
-     values for the specified values in {\tt x} and {\tt x1}.
+     probabilities for the values specified in {\tt x} and {\tt x1}.
+   \item {\tt qi\$rr}: the simulated risk ratio for the expected
+     probabilities simulated from {\tt x} and {\tt x1}.
    \item {\tt qi\$att.ev}: the simulated average expected treatment
      effect for the treated from conditional prediction models.  
    \item {\tt qi\$att.pr}: the simulated average predicted treatment
      effect for the treated from conditional prediction models.  
    \end{itemize}
-
 \end{itemize}
 
 
-\subsection*{How to Cite the Gamma Model}
+
+
+
+\subsection*{How to Cite the Logit Model}
 \bibentry{ImaLauKin-logit11}
 
 \subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
 
 
-\subsection* {See also}
-The gamma model is part of the stats package by \citet{VenRip02}.
+\subsection*{See also}
+The logit model is part of the stats package by \citet{VenRip02}.
 Advanced users may wish to refer to \texttt{help(glm)} and
 \texttt{help(family)}, as well as \cite{McCNel89}. Robust standard
 errors are implemented via the sandwich package by \citet{Zeileis04}.
@@ -320,13 +310,13 @@ Sample data are from \cite{KinTomWit00}.
 \bibliography{gk,gkpubs,core}
 
 
-\end{document}
-
+ \end{document}
 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
 %%% End: 
+
 
 
 
