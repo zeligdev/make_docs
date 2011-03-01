@@ -8,6 +8,9 @@
 \usepackage{Zelig}
 \usepackage{Sweave}
 
+\title{gamma: Gamma Regression for Continuous, Positive Dependent Variables}
+\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
+
 \SweaveOpts{prefix.string=vigpics/gamma}
 
 %\VignetteIndexEntry{Gamma Regression for Continuous, Positive Dependent Variables}
@@ -103,7 +106,6 @@ Simulate expected values ({\tt qi\$ev}) and first differences ({\tt qi\$fd}):
  s.out <- sim(z.out, x = x.low, x1 = x.high)
 @ 
 <<Example.summary, results=verbatim>>=
-message("!!!!!")
 summary(s.out)
 @ 
 \begin{center}
@@ -259,8 +261,6 @@ Sample data are from \cite{KinTomWit00}.
 %%% mode: latex
 %%% TeX-master: t
 %%% End: 
-
-
 
 
 

@@ -41,7 +41,7 @@ foreach (@ARGV) {
 # **************
 my $dest_file = defined $assign->{dest} ? $assign->{dest} : "doc.tex";
 my $conf_file = defined $assign->{conf} ? $assign->{conf} : "order.conf";
-my $dir = defined $assign->{outdir} ? $assign->{outdir} : "texs";
+my $dir = defined $assign->{dir} ? $assign->{dir} : "texs";
 
 # output setup information
 print << "INFO";
@@ -53,10 +53,7 @@ Summary
 
 INFO
 
-print "Are these correct? Y/N";
-my $choice = <>;
 
-exit 0 if $choice eq "N" || $choice eq "n";
 
 
 
@@ -70,23 +67,21 @@ open CONF, "<$conf_file" or die("could not open `$conf_file' for reading");
 # *****************
 
 
-my $d = new Doc(file => "gamma");
 my $tmp_dir = "";
 my $book = new Book(
   title => "Zelig",
-  author => "Matt Owen, Kosuke Imai, Olivia Lau, and Gary King"
+  author => "Matt Owen, Kosuke Imai, Olivia Lau, and Gary King",
+  file => "zelig.tex"
 );
 
 my $part = new Part("No one Ever Really Dies");
-my $chapter = new Chapter();
+my $chapter;
 my $doc = undef;
-
 
 $tmp_dir = $book->get_temp_dir();
 
 for my $line (<CONF>) {
   chomp $line;
-
 
   # if it is a part
   if ($line =~ m/$DocRegexes::part/) {
@@ -95,21 +90,21 @@ for my $line (<CONF>) {
   }
 
   elsif ($line =~ m/$DocRegexes::link/) {
-    print " * Linking:  '$1' to '$tmp_dir/$1'\n";
+    print " * Linking:  '$dir/$1' to '$tmp_dir/$1'\n";
     symlink File::Spec->rel2abs($1), "$tmp_dir/$1";
   }
 
   # chapter with title explicitly set
   elsif ($line =~ m/DocRegexes::chapter/) {
-    $chapter = new Chapter($1, $2);
+    $chapter = new Chapter("$dir/$1", $2);
     $part->add_chapters($1 => $chapter);
   }
 
   # chapter without title explicityly set
   elsif ($line =~ m/^\w+$/) {
-    $doc = new Doc(file => $line);
-    $chapter = new Chapter($line, $doc->get_title());
-    $part->add_chapters($line => $chapter);
+    $doc = new Doc(file => "$dir/$line");
+    $chapter = new Chapter("$dir/$line", $doc->get_title());
+    $part->add_chapters("$dir/$line" => $chapter);
   }
 
   elsif ($line =~ m/$DocRegexes::appendix/) {
@@ -121,6 +116,10 @@ $book->add_parts($part);
 
 # setup build environment
 $book->setup_env();
+
+
+
+
 $book->write_book(to_file => 1);
 
 

@@ -271,8 +271,8 @@ below.
 
 
 
-\subsection*{How to Cite the Gamma Model}
-\bibentry{ImaLauKin-logit11}
+\subsection*{How to Cite the Normal Regression Model}
+\bibentry{ImaLauKin-normal11}
 
 \subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
@@ -285,8 +285,8 @@ Advanced users may wish to refer to \texttt{help(glm)} and
 errors are implemented via the sandwich package by \citet{Zeileis04}.
 Sample data are from \cite{KinTomWit00}.
 
-\bibliographystyle{asa}
-\bibliography{gk,gkpubs}
+\bibliographystyle{plain}
+\bibliography{gk,gkpubs, core}
 <<afterpkgs, echo=FALSE>>=
  after<-search()
  torm<-setdiff(after,before)

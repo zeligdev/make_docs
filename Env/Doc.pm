@@ -1,7 +1,5 @@
 package Doc;
 
-use File::Temp qw/ tempdir tempfile /;
-use List::MoreUtils qw/ uniq /;
 
 
 =head1 NAME
@@ -12,6 +10,14 @@ LaTeX::Doc
 
   use LaTeX::Doc;
   doc = new LaTeX::Doc FILE;
+
+=cut
+
+
+use File::Temp qw/ tempdir tempfile /;
+use File::Basename;
+use File::Spec;
+use List::MoreUtils qw/ uniq /;
 
 
 =head1 METHODS
@@ -30,15 +36,29 @@ sub new {
 
   my $file_name = $hash{file};
   my $hard_link = $hash{link};
+  my $dir_name = $hash{dir};
+  my $suffix;
 
   # add error-checking here
   # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+  unless (defined $dir_name) {
+    ($file_name, $dir_name, $suffix) = File::Basename::fileparse($file_name);
+  }
 
-  $file = "$file.tex" unless $file =~ m/\.tex$/;
+  $file_name = "$file_name.tex" unless $file_name =~ m/\.tex$/;
+  $dir_name = "$dir_name/" unless $dir_name =~ m/.\/$/;
+
+  my $full_path = File::Spec->catfile($dir_name, $file_name);
+  my $abs_path = File::Spec->rel2abs($full_path);
+
   # define
   my $self = {
-    _file => "$file_name.tex",
-    _link => $hard_link
+    _file => $file_name,
+    _dir => $dir_name,
+    _link => $hard_link,
+    _suffix => $suffix,
+    _fullpath => $full_path,
+    _abspath => $abs_path
   };
 
   bless $self, $class;
@@ -55,6 +75,48 @@ sub DESTROY {
 }
 
 
+=item get_fullpath()
+
+  return: fullpath
+
+=cut
+sub get_fullpath {
+  my $self = shift;
+  $self->{_fullpath};
+}
+
+=item get_abs_path()
+
+  return: absolute path to file
+
+=cut
+
+sub get_abs_path {
+  my $self = shift;
+  File::Spec->rel2abs($self->get_fullpath())
+}
+
+=item get_file_name()
+
+  return: file name
+
+=cut
+sub get_file_name {
+  my $self = shift;
+  $self->{_file}
+}
+
+=item get_dir()
+
+  return: directory
+
+=cut
+sub get_dir {
+
+  my $self = shift;
+  $self->{_dir};
+}
+
 
 =item get_packages()
 
@@ -64,9 +126,10 @@ sub DESTROY {
 sub get_packages {
   my ($self, %params) = @_;
 
-  my $file = $self->{_file};
+  my $file = $self->get_fullpath();
 
-  open FI, "$file";
+  open FI, "<" . $self->get_fullpath()
+    or die("could not open Doc $self->{_file} file");
 
 
   my $old_slash = $/;
@@ -84,7 +147,6 @@ sub get_packages {
 }
 
 
-
 =item get_body()
 
   gets all text between \begin{document} ... \end{document}, or
@@ -98,7 +160,8 @@ sub get_body {
   my $slash = \0;
   ($/, $slash) = ($slash, $/);
 
-  open FI, "<$self->{_file}";
+  open FI, "<" . $self->get_fullpath()
+    or die("could not open Doc $self->{_file} file");
 
   if (<FI> =~ m/\\begin{document}(.*?)\\end{document}/s) {
     close FI;
@@ -125,7 +188,8 @@ sub get_bibliographies {
 
   ($/, $slash) = (\0, $/);
 
-  open FI, "<$self->{_file}";
+  open FI, "<" . $self->get_fullpath()
+    or die("could not open Doc $self->{_file} file");
 
 
   my @bibs;
@@ -138,7 +202,6 @@ sub get_bibliographies {
   $/ = $slash;
   uniq @bibs;
 }
-
 
 
 =item get_file_location()
@@ -162,7 +225,9 @@ sub get_file_location {
 =cut
 sub get_title {
   my $self = shift;
-  open FI, "<$self->{_file}" or die("could not open Doc file");
+
+  open FI, "<" . $self->get_fullpath()
+    or die("could not open Doc $self->{_file} file");;
 
   my $slash = $/;
   $/ = \0;
@@ -175,9 +240,6 @@ sub get_title {
 
   defined $result ? $result : "";
 }
-
-
-
 
 
 
@@ -247,6 +309,8 @@ sub reduce_packages {
 package Book;
 
 use File::Temp qw/ tempfile tempdir /;
+use File::Spec;
+
 sub new {
 
   my ($self, %params) = @_;
@@ -257,6 +321,7 @@ sub new {
   my ($handle, $tmp_file) = tempfile("Zelig_XXXX", DIR => $tmp_dir);
 
   my $obj = {
+             _file => $params{file},
              _FILE => $handle,
              _title => $params{title},
              _authors => $params{authors},
@@ -283,7 +348,6 @@ sub new {
 
 
 sub add_parts {
-
   my ($self, @parts) = @_;
   my @packages, @styles, @bibs, @commands;
 
@@ -306,24 +370,18 @@ sub write_book {
   my $self = shift;
   my $handle;
 
-  #print "TITLE=$self->{_temp_file}\n";
-  open $handle, ">$self->{_temp_file}";
-
-  print $handle "\\documentclass{book}\n\n";
+  open $handle, ">$self->{_file}";
 
   @packages = $self->get_packages();
 
+  print $handle "\\documentclass{book}\n\n";
   print $handle "% packages\n";
   print $handle join "\n", map { "\\usepackage{$_}" } @packages;
   print $handle "\n\n";
   print $handle "\\begin{document}\n\n";
 
   for (@{$self->{_parts}}) {
-    # print "FILE: ", $_->{_title}, "\n";
-    # print "PACKAGES: ";
-    # print join " ", $_->get_packages();
-    # print "\n";
-    $_->write($handle)
+    $_->write($handle, $self->{_file})
   }
 
   print $handle q/\end{document}/;
@@ -355,29 +413,20 @@ TEMP
   for my $part (@{ $self->{_parts} }) {
 
   
-    for my $file (keys %{ $part->{_chapters} }) {
+    for my $chapter (values %{ $part->{_chapters} }) {
+      my $doc = $chapter->as_doc();
 
-      my $doc = new Doc (file => $file);
       push @packages, @{[ $doc->get_packages() ]};
 
-      $file = "$file.tex" unless m/\.tex$/;
-      $newfile = "$self->{_temp_dir}/$file";
-
- 
-      print " $file to $newfile\n";
+      $newfile = File::Spec->catfile($tmp_dir, $doc->get_file_name());
 
       open FI, ">$newfile";
       print FI $doc->get_body();
+      $doc->{_dir} = $tmp_dir;
       close FI;
+      $chapter->{_dir_name} = $tmp_dir;
     }
-
   }
-
-  print "\n\n\n\n";
-}
-
-sub remove_env {
-
 }
 
 
@@ -450,7 +499,7 @@ sub add_chapters {
 #
 #
 sub write {
-  my ($self, $handle) = @_;
+  my ($self, $handle, $dest) = @_;
   my $title = $self->{_title};
 
   if (defined $title) {
@@ -459,7 +508,7 @@ sub write {
   }
 
   for (values %{$self->{_chapters}}) {
-    $_->print_as_include($handle);
+    $_->print_as_include($handle, $dest);
     print $handle "\n";
   }
 }
@@ -482,56 +531,80 @@ sub get_packages {
 
   @packages;
 }
+
+
 package Chapter;
 
+use File::Basename qw/ basename dirname /;
+
 sub new {
- my ($class, $file_name, $chapter_name, $short_name) = @_;
+  my ($class, $file_name, $chapter_name, $short_name) = @_;
 
- my $self = {
-   _file_name => $file_name,
-   _chapter_name => defined $chapter_name ? $chapter_name : undef,
-   _short_name => defined $short_name ? $short_name : undef
- };
+ 
 
- bless $self, $class;
+  $filename = File::Basename::basename($file_name, ".tex");
+  $basename = File::Basename::dirname($file_name);
+
+  my $rawr;
+
+
+  $chapter_name =~ m/(.*?):.*/;
+  $short_name = ucfirst lc $1;
+
+
+  my $self = {
+    _file_name => $filename,
+    _dir_name => $basename,
+    _chapter_name => defined $chapter_name ? $chapter_name : $file_name,
+    _short_name => defined $short_name ? $short_name : undef
+  };
+
+  bless $self, $class;
 }
 
+sub as_doc {
+
+  my $self = shift;
+
+
+  new Doc(
+    file => $self->{_file_name},
+    dir => $self->{_dir_name}
+  );
+}
 
 sub print_as_include {
-  my ($self, $handle) = @_;
+  my ($self, $handle, $dest) = @_;
 
+  $handle = STDOUT unless defined $handle;
   #
   my $chapter_name = $self->{_chapter_name};
   my $label = $self->{_short_name};
   
+  my $doc = $self->as_doc();
   # ...
-  $chapter_name = $self->{file_name} if not defined $chapter_name;
   $label = $self->{_file_name} if not defined $label;
-  
-  #
+
+  my ($file_name) = $doc->get_abs_path();
+
+  $dest = File::Spec->rel2abs($dest);
+  print " > ", dirname $dest, "\n\n";
+
+  $file_name = File::Spec->abs2rel($file_name, dirname $dest);
+  ($file_name) = $file_name =~ m/(.*)\.tex$/;
+
   print $handle q/\chapter/;
   print $handle "[$self->{_short_name}]" if defined $self->{_short_name};
   print $handle "{$chapter_name}\n";
   print $handle "\\label{chapter:$label}\n";
-  print $handle q/\include{/, $self->{_file_name}, "}\n";
+  print $handle q/\input{/, $file_name, "}\n";
 }
-
-sub hard_link {
-
-
-
-}
-
-sub print_inline {
-}
-
 
 # CONF TOOLS
 package DocRegexes;
 
 use strict;
 use warnings;
-
 
 # {part name}
 our $part = qr/^\{(.*?)\}$/;

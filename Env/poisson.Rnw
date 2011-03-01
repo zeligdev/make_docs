@@ -219,19 +219,13 @@ below.
    \end{itemize}
 \end{itemize}
 
-\subsection*{How to Cite the Logit Model}
-\bibentry{ImaLauKin-negbinom11}
+\subsection*{How to Cite the Poisson Regression Model}
+\bibentry{ImaLauKin-poisson11}
 
 \subsection*{How to Cite the Zelig Software Package}
 \CiteZelig
 
-\subsection* {How to Cite} 
 
-How to cite this model in Zelig:
-\begin{verse}
-  Kosuke Imai, Gary King, and Olivia Lau. 2007. "poisson: Poisson Regression for Event Count Dependent Variables" in Kosuke Imai, Gary King, and Olivia Lau, "Zelig: Everyone's Statistical Software,"http://gking.harvard.edu/zelig
-\end{verse}
-\CiteZelig
 \subsection* {See also}
 The poisson model is part of the stats package by \citet{VenRip02}.
 Advanced users may wish to refer to \texttt{help(glm)} and
@@ -239,8 +233,8 @@ Advanced users may wish to refer to \texttt{help(glm)} and
 errors are implemented via the sandwich package by \citet{Zeileis04}.
 Sample data are from \cite{Martin92}.
 
-\bibliographystyle{asa}
-\bibliography{gk,gkpubs}
+\bibliographystyle{plain}
+\bibliography{gk,gkpubs,core}
 <<afterpkgs, echo=FALSE>>=
  after<-search()
  torm<-setdiff(after,before)
