@@ -1,5 +1,14 @@
 \documentclass{article}
 
+\title{
+  normal: Normal Regression for Continuous
+  Dependent Variables
+}
+\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
+
+
+\SweaveOpts{results=hide, prefix.string=vigpics/normal}
+
 \usepackage{bibentry}
 \usepackage{graphicx}
 \usepackage{natbib}
@@ -7,9 +16,6 @@
 \usepackage{url}
 \usepackage{Zelig}
 \usepackage{Sweave}
-
-\SweaveOpts{results=hide, prefix.string=vigpics/normal}
-
 
 \begin{document}
 

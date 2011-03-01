@@ -1,5 +1,14 @@
 \documentclass{article}
 
+\title{
+  negbinom: Negative Binomial Regression for Event
+  Count Dependent Variables
+}
+\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
+
+
+\SweaveOpts{results=hide, prefix.string=vigpics/negbin}
+
 \usepackage{bibentry}
 \usepackage{graphicx}
 \usepackage{natbib}
@@ -8,11 +17,11 @@
 \usepackage{Zelig}
 \usepackage{Sweave}
 
-\SweaveOpts{results=hide, prefix.string=vigpics/negbin}
-
 
 \begin{document}
+
 \nobibliography*
+
 <<beforepkgs, echo=FALSE>>=
  before=search()
 @

@@ -1,5 +1,12 @@
 \documentclass{article}
 
+\title{
+  ls: Least Squares Regression for Continuous
+  Dependent Variables
+}
+\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
+
+
 \SweaveOpts{results=hide, prefix.string=vigpics/ls}
 
 \usepackage{bibentry}

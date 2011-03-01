@@ -1,5 +1,12 @@
 \documentclass{article}
 
+\title{
+  poisson: Poisson Regression for Event Count
+  Dependent Variables
+}
+\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
+
+
 \SweaveOpts{results=hide, prefix.string=vigpics/poisson}
 
 \usepackage{bibentry}

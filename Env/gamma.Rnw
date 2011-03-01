@@ -1,5 +1,14 @@
 \documentclass{article}
 
+\title{
+  gamma: Gamma Regression for Continuous, Positive
+  Dependent Variables
+}
+\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
+
+
+\SweaveOpts{prefix.string=vigpics/gamma}
+
 \usepackage{bibentry}
 \usepackage{graphicx}
 \usepackage{natbib}
@@ -8,10 +17,6 @@
 \usepackage{Zelig}
 \usepackage{Sweave}
 
-\title{gamma: Gamma Regression for Continuous, Positive Dependent Variables}
-\author{Matt Owen, Olivia Lau, Kosuke Imai, and Gary King}
-
-\SweaveOpts{prefix.string=vigpics/gamma}
 
 %\VignetteIndexEntry{Gamma Regression for Continuous, Positive Dependent Variables}
 %\VignetteDepends{Zelig, MCMCpack}
